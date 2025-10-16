@@ -22,14 +22,32 @@ Multi-profile Claude Code launcher with secure credential management.
 
 ## Installation
 
+### Local Build and Development Setup
+
 ```bash
-npm install -g ai-claude-start
+git clone <repository-url>
+cd ai-claude-start
+npm install
+npm run build
+npm link
 ```
 
-Or use directly with `npx`:
+This will globally register the `ai-claude-start` and `claude-start` commands on your system.
+
+### Running in Development Mode
+
+For development, you can run directly:
 
 ```bash
-npx ai-claude-start
+npm run build
+node dist/cli.js setup
+node dist/cli.js list
+```
+
+Or run the local version via `npx`:
+
+```bash
+npx --local ai-claude-start setup
 ```
 
 ## Quick Start
@@ -321,9 +339,10 @@ sudo yum install libsecret-devel      # Fedora/RHEL
 
 **Windows**: Usually works out of the box
 
-Then reinstall:
+Then rebuild and link:
 ```bash
-npm install -g ai-claude-start --force
+npm run build
+npm link
 ```
 
 ### "Claude CLI not found"

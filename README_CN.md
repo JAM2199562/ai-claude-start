@@ -10,11 +10,11 @@
 
 ## 特性
 
-- **简化配置**：只需 3 个字段 - 名称、Base URL 和令牌
+- **简化配置**：只需 4 个字段 - 名称、Base URL、可选模型和凭证
 - **多配置支持**：管理多个 API 配置（Anthropic、Moonshot、BigModel 或自定义）
 - **安全凭证存储**：使用 `keytar` 进行系统级安全存储，不可用时自动降级到本地文件存储
 - **环境清洗**：注入前清除所有 `ANTHROPIC_*` 环境变量以防止冲突
-- **统一认证**：始终使用 `ANTHROPIC_AUTH_TOKEN` 作为凭证
+- **灵活认证**：支持 `ANTHROPIC_API_KEY` 和 `ANTHROPIC_AUTH_TOKEN` 两种凭证类型
 - **交互式设置**：带 3 个内置预设的向导式配置
 - **交互式选择**：多个配置时显示选择菜单
 - **模型配置**：可选的模型名称配置，自动传递给 Claude CLI
@@ -22,14 +22,32 @@
 
 ## 安装
 
+### 本地构建和开发安装
+
 ```bash
-npm install -g ai-claude-start
+git clone <repository-url>
+cd ai-claude-start
+npm install
+npm run build
+npm link
 ```
 
-或直接使用 `npx`：
+这将在你的系统上全局注册 `ai-claude-start` 和 `claude-start` 命令。
+
+### 开发模式运行
+
+在开发时，可以直接使用：
 
 ```bash
-npx ai-claude-start
+npm run build
+node dist/cli.js setup
+node dist/cli.js list
+```
+
+或通过 `npx` 运行本地版本：
+
+```bash
+npx --local ai-claude-start setup
 ```
 
 ## 快速开始
@@ -112,14 +130,15 @@ ai-claude-start doctor
 
 ## 配置结构
 
-配置只包含 3-4 个字段：
+配置包含 4-5 个字段：
 
 ```typescript
 {
-  name: string;           // 唯一标识符
-  baseUrl: string;        // API 基础地址
-  model?: string;         // 可选的模型名称
-  token: string;          // ANTHROPIC_AUTH_TOKEN（安全存储）
+  name: string;                                    // 唯一标识符
+  baseUrl: string;                                 // API 基础地址
+  model?: string;                                  // 可选的模型名称
+  credentialType?: 'api_key' | 'auth_token';      // 凭证类型（安全存储）
+  credential: string;                              // API 密钥或认证令牌
 }
 ```
 
@@ -150,13 +169,20 @@ ai-claude-start doctor
 启动 Claude 时，所有现有的 `ANTHROPIC_*` 环境变量都会被清除以防止冲突。
 
 ### 注入
-设置两个环境变量：
-- `ANTHROPIC_AUTH_TOKEN`：你的凭证（始终）
+根据配置的凭证类型设置环境变量：
+- `ANTHROPIC_API_KEY`：如果凭证类型是 `api_key`
+- `ANTHROPIC_AUTH_TOKEN`：如果凭证类型是 `auth_token`（向后兼容的默认值）
 - `ANTHROPIC_BASE_URL`：Base URL（仅当不是默认 Anthropic URL 时）
 
-Moonshot 示例：
+Moonshot 使用 API Key 示例：
 ```bash
-ANTHROPIC_AUTH_TOKEN=your-moonshot-token
+ANTHROPIC_API_KEY=your-moonshot-api-key
+ANTHROPIC_BASE_URL=https://api.moonshot.cn/anthropic
+```
+
+Moonshot 使用认证令牌示例：
+```bash
+ANTHROPIC_AUTH_TOKEN=your-moonshot-auth-token
 ANTHROPIC_BASE_URL=https://api.moonshot.cn/anthropic
 ```
 
@@ -173,13 +199,13 @@ claude --model glm-4-plus [其他参数...]
 ### 使用 `--cmd` 标志
 
 ```bash
-ai-claude-start --cmd "node -e 'console.log(process.env.ANTHROPIC_API_KEY)'"
+ai-claude-start --cmd "node -e 'console.log(\"API Key:\", process.env.ANTHROPIC_API_KEY); console.log(\"Auth Token:\", process.env.ANTHROPIC_AUTH_TOKEN)'"
 ```
 
 ### 使用 `CLAUDE_CMD` 环境变量
 
 ```bash
-export CLAUDE_CMD="node -e 'console.log(process.env.ANTHROPIC_API_KEY)'"
+export CLAUDE_CMD="node -e 'console.log(\"API Key:\", process.env.ANTHROPIC_API_KEY); console.log(\"Auth Token:\", process.env.ANTHROPIC_AUTH_TOKEN)'"
 ai-claude-start
 ```
 
@@ -313,9 +339,10 @@ sudo yum install libsecret-devel      # Fedora/RHEL
 
 **Windows**：通常开箱即用
 
-然后重新安装：
+然后重新构建和链接：
 ```bash
-npm install -g ai-claude-start --force
+npm run build
+npm link
 ```
 
 ### "Claude CLI not found"
@@ -331,13 +358,21 @@ npm install -g ai-claude-start --force
 验证环境变量是否正确注入：
 
 ```bash
-ai-claude-start profile-name --cmd "node -e \"console.log('Token:', process.env.ANTHROPIC_AUTH_TOKEN ? 'SET' : 'NOT SET'); console.log('URL:', process.env.ANTHROPIC_BASE_URL)\""
+ai-claude-start profile-name --cmd "node -e \"console.log('API Key:', process.env.ANTHROPIC_API_KEY ? 'SET' : 'NOT SET'); console.log('Auth Token:', process.env.ANTHROPIC_AUTH_TOKEN ? 'SET' : 'NOT SET'); console.log('URL:', process.env.ANTHROPIC_BASE_URL || 'default')\""
 ```
 
-应该看到：
+应该看到（两种凭证类型之一会被设置）：
 ```
-Token: SET
-URL: https://api.moonshot.cn/anthropic  （如果不是默认 URL）
+API Key: SET
+Auth Token: NOT SET
+URL: https://api.moonshot.cn/anthropic
+```
+
+或：
+```
+API Key: NOT SET
+Auth Token: SET
+URL: https://api.moonshot.cn/anthropic
 ```
 
 更多故障排查信息，请参阅 [TROUBLESHOOTING.md](TROUBLESHOOTING.md)。
