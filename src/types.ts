@@ -2,6 +2,7 @@ export interface Profile {
   name: string;
   baseUrl: string;
   model?: string;  // Optional model name to pass to Claude
+  credentialType?: 'api_key' | 'auth_token';  // Type of credential to use
 }
 
 export interface ProfileWithCredential extends Profile {

@@ -60,7 +60,8 @@ export async function setupProfile(): Promise<void> {
     profile = {
       name: answers.name.trim(),
       baseUrl: normalizeUrl(answers.baseUrl),
-      model: answers.model?.trim() || undefined
+      model: answers.model?.trim() || undefined,
+      credentialType: undefined  // Will be set below
     };
   } else {
     const preset = PRESETS[profileType];
@@ -83,19 +84,35 @@ export async function setupProfile(): Promise<void> {
     profile = {
       name: name.trim(),
       baseUrl: preset.baseUrl,
-      model: customModel?.trim() || preset.model
+      model: customModel?.trim() || preset.model,
+      credentialType: undefined  // Will be set below
     };
   }
 
-  // Ask for credential
+  // Ask for credential type and value
+  const { credentialType } = await inquirer.prompt<{ credentialType: string }>([
+    {
+      type: 'list',
+      name: 'credentialType',
+      message: '选择认证类型:',
+      choices: [
+        { name: 'API Key (ANTHROPIC_API_KEY)', value: 'api_key' },
+        { name: 'Auth Token (ANTHROPIC_AUTH_TOKEN)', value: 'auth_token' }
+      ]
+    }
+  ]);
+
   const { credential } = await inquirer.prompt<{ credential: string }>([
     {
       type: 'password',
       name: 'credential',
-      message: 'Enter your ANTHROPIC_AUTH_TOKEN:',
+      message: `输入您的 ${credentialType === 'api_key' ? 'ANTHROPIC_API_KEY' : 'ANTHROPIC_AUTH_TOKEN'}:`,
       mask: '*'
     }
   ]);
+
+  // Set credential type on profile
+  profile.credentialType = credentialType as 'api_key' | 'auth_token';
 
   // Save profile
   const config = readConfig();
@@ -159,7 +176,9 @@ export async function listProfiles(): Promise<void> {
     if (profile.model) {
       console.log(`     Model: ${profile.model}`);
     }
-    console.log(`     Token: ${credStatus}`);
+    const authType = profile.credentialType === 'api_key' ? 'API Key' :
+                   profile.credentialType === 'auth_token' ? 'Auth Token' : 'Unknown';
+    console.log(`     Token: ${credStatus} (${authType})`);
     console.log();
   }
 }

@@ -29,9 +29,15 @@ export async function prepareEnvironment(
 ): Promise<Record<string, string>> {
   const env = sanitizeEnvironment();
 
-  // Support both ANTHROPIC_AUTH_TOKEN and ANTHROPIC_API_KEY
-  env['ANTHROPIC_AUTH_TOKEN'] = credential;
-  env['ANTHROPIC_API_KEY'] = credential;
+  // Set only the appropriate credential based on profile.credentialType
+  if (profile.credentialType === 'api_key') {
+    env['ANTHROPIC_API_KEY'] = credential;
+  } else if (profile.credentialType === 'auth_token') {
+    env['ANTHROPIC_AUTH_TOKEN'] = credential;
+  } else {
+    // Default to auth_token for backward compatibility
+    env['ANTHROPIC_AUTH_TOKEN'] = credential;
+  }
 
   // Set base URL if not default Anthropic
   if (profile.baseUrl !== 'https://api.anthropic.com') {
