@@ -14,7 +14,7 @@ Multi-profile Claude Code launcher with secure credential management.
 - **Multi-Profile Support**: Manage multiple API configurations (Anthropic, Moonshot, BigModel, or custom)
 - **Secure Credential Storage**: Uses `keytar` for OS-level secure storage, with automatic fallback to local file storage
 - **Environment Sanitization**: Cleans all `ANTHROPIC_*` variables before injection to prevent conflicts
-- **Unified Authentication**: Always uses `ANTHROPIC_AUTH_TOKEN` for credentials
+- **Flexible Authentication**: Supports both `ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` credentials
 - **Interactive Setup**: Guided wizard with 3 built-in presets
 - **Interactive Selection**: Shows a selection menu when multiple profiles are configured
 - **Model Configuration**: Optional model name configuration, automatically passed to Claude CLI
@@ -112,14 +112,15 @@ ai-claude-start doctor
 
 ## Profile Configuration
 
-A profile consists of 3-4 fields:
+A profile consists of 4-5 fields:
 
 ```typescript
 {
-  name: string;           // Unique identifier
-  baseUrl: string;        // API base URL
-  model?: string;         // Optional model name
-  token: string;          // ANTHROPIC_AUTH_TOKEN (stored securely)
+  name: string;                                    // Unique identifier
+  baseUrl: string;                                 // API base URL
+  model?: string;                                  // Optional model name
+  credentialType?: 'api_key' | 'auth_token';      // Credential type (stored securely)
+  credential: string;                              // API key or auth token
 }
 ```
 
@@ -150,13 +151,20 @@ A profile consists of 3-4 fields:
 When launching Claude, all existing `ANTHROPIC_*` environment variables are removed to prevent conflicts.
 
 ### Injection
-Two environment variables are set:
-- `ANTHROPIC_AUTH_TOKEN`: Your credential (always)
+Environment variables are set based on the configured credential type:
+- `ANTHROPIC_API_KEY`: Set if credential type is `api_key`
+- `ANTHROPIC_AUTH_TOKEN`: Set if credential type is `auth_token` (default for backward compatibility)
 - `ANTHROPIC_BASE_URL`: The base URL (only if not the default Anthropic URL)
 
-Example for Moonshot:
+Example for Moonshot with API Key:
 ```bash
-ANTHROPIC_AUTH_TOKEN=your-moonshot-token
+ANTHROPIC_API_KEY=your-moonshot-api-key
+ANTHROPIC_BASE_URL=https://api.moonshot.cn/anthropic
+```
+
+Example for Moonshot with Auth Token:
+```bash
+ANTHROPIC_AUTH_TOKEN=your-moonshot-auth-token
 ANTHROPIC_BASE_URL=https://api.moonshot.cn/anthropic
 ```
 
@@ -173,13 +181,13 @@ For testing or development without the actual Claude CLI installed:
 ### Using `--cmd` Flag
 
 ```bash
-ai-claude-start --cmd "node -e 'console.log(process.env.ANTHROPIC_API_KEY)'"
+ai-claude-start --cmd "node -e 'console.log(\"API Key:\", process.env.ANTHROPIC_API_KEY); console.log(\"Auth Token:\", process.env.ANTHROPIC_AUTH_TOKEN)'"
 ```
 
 ### Using `CLAUDE_CMD` Environment Variable
 
 ```bash
-export CLAUDE_CMD="node -e 'console.log(process.env.ANTHROPIC_API_KEY)'"
+export CLAUDE_CMD="node -e 'console.log(\"API Key:\", process.env.ANTHROPIC_API_KEY); console.log(\"Auth Token:\", process.env.ANTHROPIC_AUTH_TOKEN)'"
 ai-claude-start
 ```
 
@@ -331,13 +339,21 @@ Run `ai-claude-start list` to see available profiles, or `ai-claude-start setup`
 Verify that environment variables are correctly injected:
 
 ```bash
-ai-claude-start profile-name --cmd "node -e \"console.log('Token:', process.env.ANTHROPIC_AUTH_TOKEN ? 'SET' : 'NOT SET'); console.log('URL:', process.env.ANTHROPIC_BASE_URL)\""
+ai-claude-start profile-name --cmd "node -e \"console.log('API Key:', process.env.ANTHROPIC_API_KEY ? 'SET' : 'NOT SET'); console.log('Auth Token:', process.env.ANTHROPIC_AUTH_TOKEN ? 'SET' : 'NOT SET'); console.log('URL:', process.env.ANTHROPIC_BASE_URL || 'default')\""
 ```
 
-Should output:
+Should output (one of the credential types will be set):
 ```
-Token: SET
-URL: https://api.moonshot.cn/anthropic  (if not default URL)
+API Key: SET
+Auth Token: NOT SET
+URL: https://api.moonshot.cn/anthropic
+```
+
+Or:
+```
+API Key: NOT SET
+Auth Token: SET
+URL: https://api.moonshot.cn/anthropic
 ```
 
 See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more troubleshooting information.
