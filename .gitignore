@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+.env
+.env.local
+*.tsbuildinfo
+
+# Local config files (fallback storage)
+.ai-claude-profiles.json
+
+# Test coverage
+coverage/
+
+# Claude Code and Spec Workflow
+.claude/
+.spec-workflow/

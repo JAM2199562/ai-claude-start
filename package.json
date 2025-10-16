@@ -1,0 +1,53 @@
+{
+  "name": "ai-claude-start",
+  "version": "1.0.4",
+  "description": "Multi-profile Claude CLI launcher with secure credential management",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "ai-claude-start": "./dist/cli.js",
+    "claude-start": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "claude",
+    "cli",
+    "anthropic",
+    "ai",
+    "profile-manager",
+    "moonshot",
+    "bigmodel",
+    "zhipu"
+  ],
+  "author": "op7418",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/op7418/ai-claude-start.git"
+  },
+  "bugs": {
+    "url": "https://github.com/op7418/ai-claude-start/issues"
+  },
+  "homepage": "https://github.com/op7418/ai-claude-start#readme",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "inquirer": "^9.2.12",
+    "keytar": "^7.9.0"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

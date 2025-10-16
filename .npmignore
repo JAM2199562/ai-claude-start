@@ -1,0 +1,37 @@
+# Source files (only publish compiled code)
+src/
+*.test.ts
+*.test.js
+
+# Development files
+tsconfig.json
+vitest.config.ts
+.gitignore
+.git/
+
+# Test and demo scripts
+test-*.sh
+demo-*.sh
+
+# Documentation (keep README)
+*.md
+!README.md
+!LICENSE
+
+# Local config
+.ai-claude-profiles.json
+.env
+.env.local
+
+# OS files
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Build artifacts
+*.tsbuildinfo
+coverage/
