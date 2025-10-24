@@ -118,15 +118,20 @@ export async function executeWithProfile(
   const env = await prepareEnvironment(targetProfile, credential);
 
   // Determine command to run
-  const cmdBinary = process.env.CLAUDE_CMD || args.find((arg) => arg === '--cmd')
-    ? args[args.indexOf('--cmd') + 1]
-    : 'claude';
+  const cmdBinary = process.env.CLAUDE_CMD ||
+    (args.find((arg) => arg === '--cmd') ? args[args.indexOf('--cmd') + 1] : 'claude');
 
   // Filter out --cmd and its value from args
   let claudeArgs = args;
   const cmdIndex = args.indexOf('--cmd');
   if (cmdIndex >= 0) {
     claudeArgs = [...args.slice(0, cmdIndex), ...args.slice(cmdIndex + 2)];
+  }
+
+  // Handle --skip parameter - convert to --dangerously-skip-permissions
+  const skipIndex = claudeArgs.indexOf('--skip');
+  if (skipIndex >= 0) {
+    claudeArgs = [...claudeArgs.slice(0, skipIndex), '--dangerously-skip-permissions', ...claudeArgs.slice(skipIndex + 1)];
   }
 
   // Add --model parameter if profile has model configured and not already specified
